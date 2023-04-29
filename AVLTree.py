@@ -203,6 +203,14 @@ class AVLNode(object):
 	def is_real_node(self):
 		return self.get_key() != None
 
+	def inorder(self, process_func, index):
+		if self.is_real_node():
+			index = self.get_left().inorder(process_func) + 1
+			process_func(self, index)
+			return self.get_right().inorder(process_func, index + 1)
+		else:
+			return index - 1
+
 
 
 """
@@ -277,7 +285,9 @@ class AVLTree(object):
 	"""
 	def avl_to_array(self):
 		res = [None] * self.size()
-		pointer = 0
+		def process(node, index):
+			res[index] = (node.get_key(), node.get_value())
+		self.root.inorder(process)
 		return res
 
 
