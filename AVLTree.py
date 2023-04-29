@@ -108,9 +108,7 @@ class AVLNode(object):
 	@param key: key
 	"""
 	def set_key(self, key):
-		if self.is_real_node():
-			self.key = key
-		return None
+		self.key = key
 
 
 	"""sets value
@@ -186,6 +184,15 @@ class AVLNode(object):
 		if self.is_real_node():
 			self.size = s
 		return None
+	
+
+	def realize(self, key, value):
+		self.set_key(key)
+		self.set_value(value)
+		self.set_height(0)
+		self.set_size(0)
+		self.set_right(AVLNode())
+		self.set_left(AVLNode())
 
 
 	"""returns whether self is not a virtual node 
