@@ -1,3 +1,5 @@
+Python 3.10.8 (tags/v3.10.8:aaaf517, Oct 11 2022, 16:50:30) [MSC v.1933 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license()" for more information.
 #username - complete info
 #id1      - 207768987
 #name1    - Ella Bar 
@@ -226,39 +228,45 @@ class AVLTree(object):
 	def rotate_left(self, node):
 		child = node.get_right()
 		if (None != node.get_parent()):
+			child.set_parent(node.get_parent())
 			if node.get_parent().get_left() is node:
 				node.get_parent().set_left(child)
 			else:
 				node.get_parent().set_right(child)
 		else:
 			self.root = child
+			child.set_parent(None)
 		child.set_parent(node.parent)
 		node.set_right(child.get_left())
 		node.get_right().set_parent(node)
 		child.set_left(node)
 		node.set_parent(child)
-        
-	def rotate_Right(self, B):
-		A=B.left
-		B.left = A.Right
-		B.left.parent = B
-		A.right = B
-		A.parent = B.parent
-		B.parent = A
-		if (None == B.get_parent()):
-			self.root = A
-		else:
-			if (B.get_parent().get_right() == B):
-				B.get_parent().set_right(A)
+	
+		def rotate_Right(self, B):
+			A=B.left
+			B.left = A.Right
+			B.left.parent = B
+			A.right = B
+			A.parent = B.parent
+			B.parent = A
+			if (None == B.get_parent()):
+				self.root = A
+				A.parent = None
 			else:
-				B.get_parent().set_left(A)
+				A.parent = B.parent
+				if (B.get_parent().get_right() == B):
+					B.get_parent().set_right(A)
+				else:
+					B.get_parent().set_left(A)
 		
-		def rotate_rightleft(self, node):
+		def rotate_leftright(self, node):
 			child = node.get_left()
 			grand = child.get_right()
 			if (None == node.get_parent()):
 				self.root = grand
+				grand.set_parent(None)
 			else:
+				grand.set_parent(node.get_parent())
 				if (node.get_parent().get_left() == node):
 					node.get_parent().set_left(grand)
 				else:
@@ -272,15 +280,39 @@ class AVLTree(object):
 			grand.set_left(child)
 			child.set_parent(grand)
 
-	"""inserts val at position i in the dictionary
+		def rotate_rightleft(self,n):
+			nL=n.left
+			c=n.right
+			g=c.left
+			cR=c.right
+			p=n.parent
+			c.left=g.right
+			nL.right=g.left
+			g.right.parent=c
+			g.left.parent=nL
+			g.right=nL
+			g.left=n
+			nL.parent=g
+			n.parent=g
+			if (None == p):
+				g.parent = None
+				self.root = g
+			else:
+				g.parent = p
+				if (p.left == n):
+					p.left = g
+				else:
+					p.right = g
 
-	@type key: int
-	@pre: key currently does not appear in the dictionary
-	@param key: key of item that is to be inserted to self
-	@type val: any
-	@param val: the value of the item
-	@rtype: int
-	@returns: the number of rebalancing operation due to AVL rebalancing
+
+	"""inserts val at position i in the dictionary	
+		@type key: int
+		@pre: key currently does not appear in the dictionary
+		@param key: key of item that is to be inserted to self
+		@type val: any
+		@param val: the value of the item
+		@rtype: int
+		@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
 	def insert(self, key, val):
 		if(key>self.root.key):
