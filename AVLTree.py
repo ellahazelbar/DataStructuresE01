@@ -216,6 +216,18 @@ class AVLTree(object):
 		return None
 
 
+	def rotate_left(node):
+		child = node.get_right()
+		if node.get_parent().get_left() == node:
+			node.get_parent().set_left(child)
+		else:
+			node.get_parent().set_right(child)
+		child.set_parent(node.parent)
+		node.set_right(child.get_left())
+		node.get_right().set_parent(node)
+		child.set_left(node)
+		node.set_parent(child)
+
 	"""inserts val at position i in the dictionary
 
 	@type key: int
@@ -247,7 +259,9 @@ class AVLTree(object):
 	@returns: a sorted list according to key of touples (key, value) representing the data structure
 	"""
 	def avl_to_array(self):
-		return None
+		res = [None] * self.size()
+		pointer = 0
+		return res
 
 
 	"""returns the number of items in dictionary 
