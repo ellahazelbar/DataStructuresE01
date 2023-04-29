@@ -159,9 +159,10 @@ class AVLNode(object):
 		return None
 	
 
-	def realize(self, key, value):
+	def realize(self, key, value, parent):
 		self.set_key(key)
 		self.set_value(value)
+		self.set_parent(parent)
 		self.set_height(0)
 		self.set_size(0)
 		self.set_right(AVLNode())
@@ -251,6 +252,25 @@ class AVLTree(object):
 				B.get_parent().set_right(A)
 			else:
 				B.get_parent().set_left(A)
+		
+		def rotate_rightleft(self, node):
+			child = node.get_left()
+			grand = child.get_right()
+			if (None == node.get_parent()):
+				self.root = grand
+			else:
+				if (node.get_parent().get_left() == node):
+					node.get_parent().set_left(grand)
+				else:
+					node.get_parent().set_right(grand)
+			node.set_left(grand.get_right())
+			node.get_left().set_parent(node)
+			child.set_right(grand.get_left())
+			child.get_right().set_parent(child)
+			grand.set_right(node)
+			node.set_parent(grand)
+			grand.set_left(child)
+			child.set_parent(grand)
 
 	"""inserts val at position i in the dictionary
 
