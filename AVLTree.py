@@ -1,8 +1,8 @@
-#username - 
-#id1      - 207768987 
-#name1    - Ella Bar
+#username - complete info
+#id1      - 207768987
+#name1    - Ella Bar 
 #id2      - 212258990
-#name2    - Lior Tsemah
+#name2    - Lior Tsemah  
 
 
 
@@ -25,15 +25,12 @@ class AVLNode(object):
 		self.height = -1
 		self.size = 0
 		
-
 	"""returns the key
 
 	@rtype: int or None
 	@returns: the key of self, None if the node is virtual
 	"""
 	def get_key(self):
-		if self.is_real_node():
-			return self.key
 		return None
 
 
@@ -43,8 +40,6 @@ class AVLNode(object):
 	@returns: the value of self, None if the node is virtual
 	"""
 	def get_value(self):
-		if self.is_real_node():
-			return self.value		
 		return None
 
 
@@ -53,8 +48,6 @@ class AVLNode(object):
 	@returns: the left child of self, None if there is no left child (if self is virtual)
 	"""
 	def get_left(self):
-		if self.is_real_node():
-			return self.left
 		return None
 
 
@@ -64,8 +57,6 @@ class AVLNode(object):
 	@returns: the right child of self, None if there is no right child (if self is virtual)
 	"""
 	def get_right(self):
-		if self.is_real_node():
-			return self.right
 		return None
 
 
@@ -75,8 +66,6 @@ class AVLNode(object):
 	@returns: the parent of self, None if there is no parent
 	"""
 	def get_parent(self):
-		if self.is_real_node():
-			return self.parent
 		return None
 
 
@@ -86,8 +75,6 @@ class AVLNode(object):
 	@returns: the height of self, -1 if the node is virtual
 	"""
 	def get_height(self):
-		if self.is_real_node():
-			return self.height
 		return -1
 
 
@@ -97,8 +84,6 @@ class AVLNode(object):
 	@returns: the size of the subtree of self, 0 if the node is virtual
 	"""
 	def get_size(self):
-		if self.is_real_node():
-			return self.size
 		return 0
 
 
@@ -117,8 +102,6 @@ class AVLNode(object):
 	@param value: data
 	"""
 	def set_value(self, value):
-		if self.is_real_node():
-			self.value = value
 		return None
 
 
@@ -128,8 +111,6 @@ class AVLNode(object):
 	@param node: a node
 	"""
 	def set_left(self, node):
-		if self.is_real_node():
-			self.left = node
 		return None
 
 
@@ -139,8 +120,6 @@ class AVLNode(object):
 	@param node: a node
 	"""
 	def set_right(self, node):
-		if self.is_real_node():
-			self.right = node
 		return None
 
 
@@ -150,8 +129,6 @@ class AVLNode(object):
 	@param node: a node
 	"""
 	def set_parent(self, node):
-		if self.is_real_node():
-			self.parent = node
 		return None
 	
 
@@ -165,8 +142,6 @@ class AVLNode(object):
 	@param h: the height
 	"""
 	def set_height(self, h):
-		if self.is_real_node():
-			self.height = h
 		return None
 
 
@@ -181,8 +156,6 @@ class AVLNode(object):
 	@param s: the size
 	"""
 	def set_size(self, s):
-		if self.is_real_node():
-			self.size = s
 		return None
 	
 
@@ -236,22 +209,48 @@ class AVLTree(object):
 	@rtype: AVLNode
 	@returns: node corresponding to key.
 	"""
-	def search(self, key):
-		return None
-
-
-	def rotate_left(node):
-		child = node.get_right()
-		if node.get_parent().get_left() == node:
-			node.get_parent().set_left(child)
+	def env_search(AVLNode, key):
+		if (AVLNode.is_real_node()):
+			return None
+		if(AVLNode.key)==key:
+			return AVLNode
+		elif (key > AVLNode.key):
+			return AVLTree.env_search(AVLNode.right,key)
 		else:
-			node.get_parent().set_right(child)
+			return AVLTree.env_search(AVLNode.left,key)
+            
+	def search(self, key):
+		self.env_search(self.root, key)
+	    
+	def rotate_left(self, node):
+		child = node.get_right()
+		if (None != node.get_parent()):
+			if node.get_parent().get_left() is node:
+				node.get_parent().set_left(child)
+			else:
+				node.get_parent().set_right(child)
+		else:
+			self.root = child
 		child.set_parent(node.parent)
 		node.set_right(child.get_left())
 		node.get_right().set_parent(node)
 		child.set_left(node)
 		node.set_parent(child)
-		
+        
+	def rotate_Right(self, B):
+		A=B.left
+		B.left = A.Right
+		B.left.parent = B
+		A.right = B
+		A.parent = B.parent
+		B.parent = A
+		if (None == B.get_parent()):
+			self.root = A
+		else:
+			if (B.get_parent().get_right() == B):
+				B.get_parent().set_right(A)
+			else:
+				B.get_parent().set_left(A)
 
 	"""inserts val at position i in the dictionary
 
@@ -264,8 +263,10 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
 	def insert(self, key, val):
+		if(key>self.root.key):
+			if(self.root.right!=None):
+				return -1
 		return -1
-
 
 	"""deletes node from the dictionary
 
@@ -318,7 +319,8 @@ class AVLTree(object):
 
 	@type tree: AVLTree 
 	@param tree: a dictionary to be joined with self
-	@type key: int 
+	@type key: int
+	
 	@param key: The key separting self with tree
 	@type val: any 
 	@param val: The value attached to key
