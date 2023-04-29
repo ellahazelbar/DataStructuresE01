@@ -155,7 +155,11 @@ class AVLNode(object):
 		if self.is_real_node():
 			self.parent = node
 		return None
+	
 
+	def update_height(self):
+		if self.is_real_node():
+			self.height = max(self.get_right().get_height(), self.get_left().get_height()) + 1
 
 	"""sets the height of the node
 
@@ -167,6 +171,11 @@ class AVLNode(object):
 			self.height = h
 		return None
 
+
+
+	def update_size(self):
+		if self.is_real_node():
+			self.height = self.get_right().get_size(), self.get_left().get_size() + 1
 
 	"""sets the size of node
 
@@ -227,6 +236,7 @@ class AVLTree(object):
 		node.get_right().set_parent(node)
 		child.set_left(node)
 		node.set_parent(child)
+		
 
 	"""inserts val at position i in the dictionary
 
