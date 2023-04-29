@@ -1,3 +1,5 @@
+Python 3.10.8 (tags/v3.10.8:aaaf517, Oct 11 2022, 16:50:30) [MSC v.1933 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license()" for more information.
 #username - complete info
 #id1      - 207768987
 #name1    - Ella Bar 
@@ -231,29 +233,46 @@ class AVLTree(object):
 				node.get_parent().set_right(child)
 		else:
 			self.root = child
-		child.set_parent(node.parent)
-		node.set_right(child.get_left())
-		node.get_right().set_parent(node)
-		child.set_left(node)
-		node.set_parent(child)
-        
-	def rotate_Right(self, B):
-		A=B.left
-		B.left = A.Right
-		B.left.parent = B
-		A.right = B
-		A.parent = B.parent
-		B.parent = A
-		if (None == B.get_parent()):
-			self.root = A
-		else:
-			if (B.get_parent().get_right() == B):
-				B.get_parent().set_right(A)
-			else:
-				B.get_parent().set_left(A)
-
-	"""inserts val at position i in the dictionary
-
+... 		child.set_parent(node.parent)
+... 		node.set_right(child.get_left())
+... 		node.get_right().set_parent(node)
+... 		child.set_left(node)
+... 		node.set_parent(child)
+...         
+... 	def rotate_Right(self, B):
+... 		A=B.left
+... 		B.left = A.Right
+... 		B.left.parent = B
+... 		A.right = B
+... 		A.parent = B.parent
+... 		B.parent = A
+... 		if (None == B.get_parent()):
+... 			self.root = A
+... 		else:
+... 			if (B.get_parent().get_right() == B):
+... 				B.get_parent().set_right(A)
+... 			else:
+... 				B.get_parent().set_left(A)
+... 
+... 	def right_left(self,n):
+...             nL=n.left
+...             c=n.right
+...             g=c.left
+...             cR=c.right
+...             c.left=g.right
+...             nL.right=g.left
+...             g.right.parent=c
+...             g.left.parent=nL
+...             g.right=nL
+...             g.left=n
+...             nl.parent=g
+...             n.parent=g
+... 	
+... 	
+... 	
+... 
+... 	"""inserts val at position i in the dictionary
+... 
 	@type key: int
 	@pre: key currently does not appear in the dictionary
 	@param key: key of item that is to be inserted to self
