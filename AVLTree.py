@@ -373,7 +373,16 @@ class AVLTree(object):
 	@returns: the item of rank i in self
 	"""
 	def select(self, i):
-		return None
+                if self is None:
+                        return None
+                left_subtree_rank=self.left.size if self.left is not None else 0
+                r=1+ left_subtree_rank
+                if i==r:
+                        return self
+                else if i<r:
+                        return select(self.left,i)
+                else:
+                        return select(self.right,i-r)
 
 
 	"""returns the root of the tree representing the dictionary
