@@ -5,7 +5,7 @@
 #name2    - Lior Tsemah  
 
 
-
+import random
 """A class represnting a node in an AVL tree"""
 
 class AVLNode(object):
@@ -348,10 +348,13 @@ class AVLTree(object):
 		temp = cur.parent
 		while temp != None:
 			temp.update_height()
+			temp.update_size()
 			temp = temp.get_parent()
 		fixes = 0
 		while (None != cur):
 			balance_factor = cur.get_BF()
+			if (balance_factor < 2 or 2 < balance_factor):
+				x = 3
 			if (balance_factor < -1):
 				bf_right = cur.get_right().get_BF()
 				if (-1 == bf_right):
@@ -617,12 +620,14 @@ class AVLTree(object):
 		return self.root
 	
 t = AVLTree()
-t.insert(6, 6)
-t.insert(7, 7)
-t.insert(8, 8)
-t.insert(5, 5)
-t.insert(4, 4)
-t.insert(3, 3)
-t.insert(2, 2)
+#keys = [i for i in range(100)]
+#random.shuffle(keys)
+keys = [50, 59, 72, 45, 58, 92, 14, 0, 23, 7, 9, 47, 46, 10, 24, 27, 36, 13, 19, 31]
+maxOps = 0
+for i in keys:
+	ops = t.insert(i, i)
+	if (maxOps < ops):
+		maxOps = ops
+		print(maxOps)
 
-print(t.delete(t.select(2)))
+print(t.delete(t.select(t.size())))
