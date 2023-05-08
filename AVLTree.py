@@ -379,9 +379,126 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
 	def delete(self, node):
-		return -1
+		fixPoint = None
+		count = 0
+		if (not node.is_real_node()):
+			return 0
+		realLeft = node.get_left().is_real_node()
+		realRight = node.get_right().is_real_node()
+		if (not realLeft and not realRight):
+			fixPoint = node.get_parent()
+			if (fixPoint == None):
+				self.root = None
+				return 0
+			if (fixPoint.get_right().get_key() == node.get_key()):
+				fixPoint.set_right(node.get_right())
+				fixPoint.get_right().set_parent(fixPoint)
+			else:
+				fixPoint.set_left(node.get_right())
+				fixPoint.get_left().set_parent(fixPoint)
+			node.set_right(None)
+			node.set_left(None)
+			node.set_parent(None)
+		elif (realLeft and not realRight):
+			fixPoint = node.get_parent()
+			if (fixPoint == None):
+				self.root = node.get_left()
+				node.set_left(None)
+				self.root.set_parent(None)
+				return 0
+			if (fixPoint.get_right().get_key() == node.get_key()):
+				fixPoint.set_right(node.get_left())
+				fixPoint.get_right().set_parent(fixPoint)
+			else:
+				fixPoint.set_left(node.get_left())
+				fixPoint.get_left().set_parent(fixPoint)
+			node.set_right(None)
+			node.set_left(None)
+			node.set_parent(None)
+		elif (realRight and not realLeft):
+			fixPoint = node.get_parent()
+			if (fixPoint == None):
+				self.root = node.get_right()
+				node.set_left(None)
+				self.root.set_parent(None)
+				return 0
+			if (fixPoint.get_right().get_key() == node.get_key()):
+				fixPoint.set_right(node.get_right())
+				fixPoint.get_right().set_parent(fixPoint)
+			else:
+				fixPoint.set_left(node.get_right())
+				fixPoint.get_left().set_parent(fixPoint)
+			node.set_right(None)
+			node.set_left(None)
+			node.set_parent(None)
+		else:
+			fixPoint = node.get_parent()
+			suc = self.successor(node)
+			count = self.delete(suc)
+			if (None == fixPoint):
+				self.root = suc
+				suc.set_parent(None)
+			else:
+				if (fixPoint.get_right().get_key() == node.get_key()):
+					fixPoint.set_right(suc)
+				else:
+					fixPoint.set_left(suc)
+				suc.set_parent(fixPoint)
+			suc.set_right(node.get_right())
+			suc.get_right().set_parent(suc)
+			node.set_right(None)
+			suc.set_left(node.get_left())
+			suc.get_left().set_parent(suc)
+			suc.update_height()
+			suc.update_size()
+			node.set_left(None)
+			node.set_parent(None)
+		cur = fixPoint
+		while cur != None:
+			cur.update_height()
+			cur.update_size()
+			cur = cur.get_parent()
 
+		cur = fixPoint
+		while (None != cur):
+			balance_factor = cur.get_BF()
+			if (balance_factor < -1):
+				bf_right = cur.get_right().get_BF()
+				if (-1 == bf_right):
+					count += 1
+					self.rotate_left(cur)
+				else:
+					count += 2
+					self.rotate_rightleft(cur)
+			elif (1 < balance_factor):
+				bf_left = cur.get_left().get_BF()
+				if (-1 == bf_left):
+					count += 2 
+					self.rotate_leftright(cur)
+				else:
+					count += 1
+					self.rotate_right(cur)
+			cur = cur.get_parent()
+		return count
+	
+	def successor(self, node):
+		if (node.get_right().is_real_node()):
+			cur = node.get_right()
+			while (cur.get_left().is_real_node()):
+				cur  = cur.get_left()
+			return cur
+		else:
+			cur = node.get_parent()
+			while (True):
+				if (None == cur):
+					return None
+				else:
+					if (node.get_key() == cur.get_left().get_key()):
+						return cur
+					node = cur
+					cur = node.get_parent()
 
+		
 	"""returns an array representing dictionary 
 
 	@rtype: list
@@ -445,7 +562,7 @@ class AVLTree(object):
 	@returns: the rank of node in self
 	"""
 	def rank(self, node):
-		rank = 0
+		rank = 1
 		cur = self.root
 		key = node.get_key()
 		curKey = cur.get_key() #root is real since node exists
@@ -476,7 +593,7 @@ class AVLTree(object):
 			if (not node.is_real_node()):
 				return None
 			left_subtree_rank = node.left.size if node.left is not None else 0
-			r= 1+ left_subtree_rank
+			r= 1 + left_subtree_rank
 			if i == r:
 				return node
 			elif i < r:
@@ -505,4 +622,4 @@ t.insert(4, 4)
 t.insert(3, 3)
 t.insert(2, 2)
 
-print(t.select(2).get_key())
+print(t.delete(t.select(2)))
