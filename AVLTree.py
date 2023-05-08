@@ -464,8 +464,7 @@ class AVLTree(object):
 
 
 
-	"""finds the i'th smallest item (according to keys) in self
-
+	"""finds the i'th smallest item (according to keys) in self	
 	@type i: int
 	@pre: 1 <= i <= self.size()
 	@param i: the rank to be selected in self
@@ -473,16 +472,20 @@ class AVLTree(object):
 	@returns: the item of rank i in self
 	"""
 	def select(self, i):
-                if self is None:
-                        return None
-                left_subtree_rank=self.left.size if self.left is not None else 0
-                r=1+ left_subtree_rank
-                if i==r:
-                        return self
-                else if i<r:
-                        return select(self.left,i)
-                else:
-                        return select(self.right,i-r)
+		def select_recursive(node, i):
+			if (not node.is_real_node()):
+				return None
+			left_subtree_rank = node.left.size if node.left is not None else 0
+			r= 1+ left_subtree_rank
+			if i == r:
+				return node
+			elif i < r:
+				return select_recursive(node.left, i)
+			else:
+				return select_recursive(node.right, i-r)
+		return select_recursive(self.root, i)
+		
+	
 
 
 	"""returns the root of the tree representing the dictionary
@@ -494,12 +497,12 @@ class AVLTree(object):
 		return self.root
 	
 t = AVLTree()
-print(t.insert(6, 6))
-print(t.insert(7, 7))
-print(t.insert(8, 8))
-print(t.insert(5, 5))
-print(t.insert(4, 4))
-print(t.insert(3, 3))
-print(t.insert(2, 2))
+t.insert(6, 6)
+t.insert(7, 7)
+t.insert(8, 8)
+t.insert(5, 5)
+t.insert(4, 4)
+t.insert(3, 3)
+t.insert(2, 2)
 
-print(t.rank(t.root.get_left().get_left()))
+print(t.select(2).get_key())
