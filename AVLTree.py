@@ -378,7 +378,7 @@ class AVLTree(object):
 	@rtype: int
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
-	def delete(self, node):
+	def delete(self, node, balance = True):
 		fixPoint = None
 		count = 0
 		if (not node.is_real_node()):
@@ -432,18 +432,19 @@ class AVLTree(object):
 			node.set_left(None)
 			node.set_parent(None)
 		else:
-			fixPoint = node.get_parent()
+			parent = node.get_parent()
 			suc = self.successor(node)
-			count = self.delete(suc)
-			if (None == fixPoint):
+			fixPoint = suc.get_parent()
+			self.delete(suc, False)
+			if (None == parent):
 				self.root = suc
 				suc.set_parent(None)
 			else:
-				if (fixPoint.get_right().get_key() == node.get_key()):
-					fixPoint.set_right(suc)
+				if (parent.get_right().get_key() == node.get_key()):
+					parent.set_right(suc)
 				else:
-					fixPoint.set_left(suc)
-				suc.set_parent(fixPoint)
+					parent.set_left(suc)
+				suc.set_parent(parent)
 			suc.set_right(node.get_right())
 			suc.get_right().set_parent(suc)
 			node.set_right(None)
@@ -459,17 +460,19 @@ class AVLTree(object):
 			cur.update_size()
 			cur = cur.get_parent()
 
+		if (not balance):
+			return 0
 		cur = fixPoint
 		while (None != cur):
 			balance_factor = cur.get_BF()
 			if (balance_factor < -1):
 				bf_right = cur.get_right().get_BF()
-				if (-1 == bf_right):
-					count += 1
-					self.rotate_left(cur)
-				else:
+				if (1 == bf_right):
 					count += 2
 					self.rotate_rightleft(cur)
+				else:
+					count += 1
+					self.rotate_left(cur)
 			elif (1 < balance_factor):
 				bf_left = cur.get_left().get_BF()
 				if (-1 == bf_left):
