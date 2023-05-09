@@ -353,7 +353,7 @@ class AVLTree(object):
 		fixes = 0
 		while (None != cur):
 			balance_factor = cur.get_BF()
-			if (balance_factor < 2 or 2 < balance_factor):
+			if (balance_factor < -2 or 2 < balance_factor):
 				x = 3
 			if (balance_factor < -1):
 				bf_right = cur.get_right().get_BF()
@@ -622,7 +622,7 @@ class AVLTree(object):
 t = AVLTree()
 #keys = [i for i in range(100)]
 #random.shuffle(keys)
-keys = [50, 59, 72, 45, 58, 92, 14, 0, 23, 7, 9, 47, 46, 10, 24, 27, 36, 13, 19, 31]
+keys = [50, 59, 72, 45, 58, 92, 14, 0, 23, 7, 9, 47, 46, 10, 24, 27, 36, 13, 19]
 maxOps = 0
 for i in keys:
 	ops = t.insert(i, i)
@@ -630,4 +630,5 @@ for i in keys:
 		maxOps = ops
 		print(maxOps)
 
+t.insert(31, 31)
 print(t.delete(t.select(t.size())))
