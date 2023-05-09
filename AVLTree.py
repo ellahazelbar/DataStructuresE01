@@ -8,6 +8,10 @@
 import random
 """A class represnting a node in an AVL tree"""
 
+#DEBUG
+global LastRotationPerformed
+LastRotationPerformed = ""
+
 class AVLNode(object):
 	"""Constructor, you are allowed to add more fields. 
 	
@@ -182,7 +186,7 @@ class AVLNode(object):
 
 	def inorder(self, process_func, index):
 		if self.is_real_node():
-			index = self.get_left().inorder(process_func) + 1
+			index = self.get_left().inorder(process_func, index) + 1
 			process_func(self, index)
 			return self.get_right().inorder(process_func, index + 1)
 		else:
@@ -193,7 +197,6 @@ class AVLNode(object):
 """
 A class implementing an AVL tree.
 """
-
 class AVLTree(object):
 
 	"""
@@ -204,27 +207,24 @@ class AVLTree(object):
 		self.root = AVLNode(None, None)
 		# add your fields here
 
-
-
-	"""searches for a node in the dictionary corresponding to the key
-
+	"""
+	searches for a node in the dictionary corresponding to the key
 	@type key: int
 	@param key: a key to be searched
 	@rtype: AVLNode
 	@returns: node corresponding to key.
-	"""
-	def env_search(AVLNode, key):
-		if (AVLNode.is_real_node()):
-			return None
-		if(AVLNode.key)==key:
-			return AVLNode
-		elif (key > AVLNode.key):
-			return AVLTree.env_search(AVLNode.right,key)
-		else:
-			return AVLTree.env_search(AVLNode.left,key)
-            
+	"""    
 	def search(self, key):
-		self.env_search(self.root, key)
+		def env_search(AVLNode, key):
+			if (AVLNode.is_real_node()):
+				return None
+			if(AVLNode.key)==key:
+				return AVLNode
+			elif (key > AVLNode.key):
+				return AVLTree.env_search(AVLNode.right,key)
+			else:
+				return AVLTree.env_search(AVLNode.left,key)
+		return env_search(self.root, key)
 	    
 	def rotate_left(self, node):
 		child = node.get_right()
@@ -270,13 +270,13 @@ class AVLTree(object):
 		grand = child.get_right()
 		if (None == node.get_parent()):
 			self.root = grand
+			grand.set_parent(None)
 		else:
 			grand.set_parent(node.get_parent())
 			if (node.get_parent().get_left() == node):
 				node.get_parent().set_left(grand)
 			else:
 				node.get_parent().set_right(grand)
-		grand.set_parent(node.get_parent())
 		node.set_left(grand.get_right())
 		node.get_left().set_parent(node)
 		child.set_right(grand.get_left())
@@ -293,20 +293,18 @@ class AVLTree(object):
 		grand.update_size()
 
 	def rotate_rightleft(self,n):
-		nL=n.left
 		c=n.right
 		g=c.left
-		cR=c.right
 		p=n.parent
 		g.parent=p
 		c.left=g.right
-		nL.right=g.left
-		g.right.parent=c
-		g.left.parent=nL
-		g.right=nL
+		n.right=g.left
+		c.left.parent=c
+		n.right.parent=n
+		g.right=c
 		g.left=n
-		nL.parent=g
 		n.parent=g
+		c.parent=g
 		if (None == p):
 			self.root=g
 		else:
@@ -321,7 +319,7 @@ class AVLTree(object):
 		g.update_height()
 		g.update_size()
 
-
+	
 	"""inserts val at position i in the dictionary	
 		@type key: int
 		@pre: key currently does not appear in the dictionary
@@ -345,16 +343,11 @@ class AVLTree(object):
 				prev = cur
 				cur = cur.get_right()
 
-		temp = cur.parent
-		while temp != None:
-			temp.update_height()
-			temp.update_size()
-			temp = temp.get_parent()
 		fixes = 0
 		while (None != cur):
 			balance_factor = cur.get_BF()
 			if (balance_factor < -2 or 2 < balance_factor):
-				x = 3
+				"breakpoint"
 			if (balance_factor < -1):
 				bf_right = cur.get_right().get_BF()
 				if (-1 == bf_right):
@@ -371,6 +364,8 @@ class AVLTree(object):
 				else:
 					fixes += 1
 					self.rotate_right(cur)
+			cur.update_size()
+			cur.update_height()
 			cur = cur.get_parent()
 		return fixes
 
@@ -457,12 +452,7 @@ class AVLTree(object):
 			suc.update_size()
 			node.set_left(None)
 			node.set_parent(None)
-		cur = fixPoint
-		while cur != None:
-			cur.update_height()
-			cur.update_size()
-			cur = cur.get_parent()
-
+		
 		if (not balance):
 			return 0
 		cur = fixPoint
@@ -484,6 +474,8 @@ class AVLTree(object):
 				else:
 					count += 1
 					self.rotate_right(cur)
+			cur.update_height()
+			cur.update_size()
 			cur = cur.get_parent()
 		return count
 	
@@ -514,7 +506,7 @@ class AVLTree(object):
 		res = [None] * self.size()
 		def process(node, index):
 			res[index] = (node.get_key(), node.get_value())
-		self.root.inorder(process)
+		self.root.inorder(process, 0)
 		return res
 
 
@@ -619,16 +611,20 @@ class AVLTree(object):
 	def get_root(self):
 		return self.root
 	
-t = AVLTree()
-#keys = [i for i in range(100)]
-#random.shuffle(keys)
-keys = [50, 59, 72, 45, 58, 92, 14, 0, 23, 7, 9, 47, 46, 10, 24, 27, 36, 13, 19]
-maxOps = 0
-for i in keys:
-	ops = t.insert(i, i)
-	if (maxOps < ops):
-		maxOps = ops
-		print(maxOps)
 
-t.insert(31, 31)
-print(t.delete(t.select(t.size())))
+def debug(t):
+	arr = t.avl_to_array()
+	for i in range(len(arr)):
+		for j in range(i+1,len(arr)):
+			if (arr[i] == arr[j]):
+				"breakpoint"
+
+
+t = AVLTree()
+keys = [15, 8, 22, 4, 11, 20, 24, 2, 9, 12, 18, 13]
+for i in keys:
+	t.insert(i, i)
+	#debug(t)
+
+print(t.delete(t.select(3)))
+
