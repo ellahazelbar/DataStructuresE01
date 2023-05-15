@@ -6,11 +6,8 @@
 
 
 import random
+import ArrayCreator
 """A class represnting a node in an AVL tree"""
-
-#DEBUG
-global LastRotationPerformed
-LastRotationPerformed = ""
 
 class AVLNode(object):
 	"""Constructor, you are allowed to add more fields. 
@@ -166,14 +163,15 @@ class AVLNode(object):
 			return self.get_left().get_height() - self.get_right().get_height()
 		return 0
 
-	def realize(self, key, value, parent):
+	def realize(self, key, value):
 		self.set_key(key)
 		self.set_value(value)
-		self.set_parent(parent)
 		self.set_height(0)
 		self.set_size(1)
 		self.set_right(AVLNode(None, None))
+		self.get_right().set_parent(self)
 		self.set_left(AVLNode(None, None))
+		self.get_left().set_parent(self)
 
 
 	"""returns whether self is not a virtual node 
@@ -192,8 +190,6 @@ class AVLNode(object):
 		else:
 			return index - 1
 
-
-
 """
 A class implementing an AVL tree.
 """
@@ -205,7 +201,7 @@ class AVLTree(object):
 	"""
 	def __init__(self):
 		self.root = AVLNode(None, None)
-		# add your fields here
+		self.maximum = self.root
 
 	"""
 	searches for a node in the dictionary corresponding to the key
@@ -263,8 +259,7 @@ class AVLTree(object):
 		B.update_height()
 		A.update_size()
 		A.update_height()
-
-		
+	
 	def rotate_leftright(self, node):
 		child = node.get_left()
 		grand = child.get_right()
@@ -319,7 +314,31 @@ class AVLTree(object):
 		g.update_height()
 		g.update_size()
 
+	def create_node_bst(self, key, val, cur):
+		while True:
+			if (not cur.is_real_node()):
+				cur.realize(key, val)
+				if (self.maximum.is_real_node()):
+					if (key > self.maximum.get_key()):
+						self.maximum = cur
+				else:
+					self.maximum = cur
+				return cur
+			if (key < cur.get_key()):
+				cur = cur.get_left()
+			else:
+				cur = cur.get_right()
 	
+	def find_start_fingertree(self, key):
+		cur = self.maximum
+		if (not cur.is_real_node()):
+			return cur
+		while (None != cur):
+			if (cur.get_key() < key):
+				return cur.get_right()
+			cur = cur.get_parent()
+		return self.root;
+		
 	"""inserts val at position i in the dictionary	
 		@type key: int
 		@pre: key currently does not appear in the dictionary
@@ -329,19 +348,13 @@ class AVLTree(object):
 		@rtype: int
 		@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
-	def insert(self, key, val):
-		cur = self.root
-		prev = None
-		while True:
-			if (not cur.is_real_node()):
-				cur.realize(key, val, prev)
-				break
-			if (key < cur.get_key()):
-				prev = cur
-				cur = cur.get_left()
-			else:
-				prev = cur
-				cur = cur.get_right()
+	def insert(self, key, val, use_finger = True):
+		cur = None
+		if (use_finger):
+			start = self.find_start_fingertree(key)
+			cur = self.create_node_bst(key, val, start)
+		else:
+			cur = self.create_node_bst(key, val, self.root)
 
 		fixes = 0
 		while (None != cur):
@@ -377,6 +390,8 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
 	def delete(self, node, balance = True):
+		if (node.get_key() == self.maximum.get_key()):
+			self.maximum = self.predecessor(node)
 		fixPoint = None
 		count = 0
 		if (not node.is_real_node()):
@@ -386,7 +401,8 @@ class AVLTree(object):
 		if (not realLeft and not realRight):
 			fixPoint = node.get_parent()
 			if (fixPoint == None):
-				self.root = None
+				self.root = AVLNode(None, None)
+				self.maximum = self.root
 				return 0
 			if (fixPoint.get_right().get_key() == node.get_key()):
 				fixPoint.set_right(node.get_right())
@@ -492,6 +508,23 @@ class AVLTree(object):
 					return None
 				else:
 					if (node.get_key() == cur.get_left().get_key()):
+						return cur
+					node = cur
+					cur = node.get_parent()
+
+	def predecessor(self, node):
+		if (node.get_left().is_real_node()):
+			cur = node.get_left()
+			while (cur.get_right().is_real_node()):
+				cur  = cur.get_right()
+			return cur
+		else:
+			cur = node.get_parent()
+			while (True):
+				if (None == cur):
+					return None
+				else:
+					if (node.get_key() == cur.get_right().get_key()):
 						return cur
 					node = cur
 					cur = node.get_parent()
@@ -613,18 +646,6 @@ class AVLTree(object):
 	
 
 def debug(t):
-	arr = t.avl_to_array()
-	for i in range(len(arr)):
-		for j in range(i+1,len(arr)):
-			if (arr[i] == arr[j]):
-				"breakpoint"
+	print(t.maximum.get_key())
 
-
-t = AVLTree()
-keys = [15, 8, 22, 4, 11, 20, 24, 2, 9, 12, 18, 13]
-for i in keys:
-	t.insert(i, i)
-	#debug(t)
-
-print(t.delete(t.select(3)))
-
+print(ArrayCreator.CreateArray(2, 0))
