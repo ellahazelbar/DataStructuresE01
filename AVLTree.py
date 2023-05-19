@@ -581,8 +581,88 @@ class AVLTree(object):
 	@returns: the absolute value of the difference between the height of the AVL trees joined
 	"""
 	def join(self, tree, key, val):
-		return None
-
+		if (not tree.get_root().is_real_node()):
+			retValue = self.get_root().get_height() + 2
+			self.insert(key, val)
+			return retValue
+		if (not self.get_root().is_real_node()):
+			retValue = tree.get_root().get_height() + 2
+			tree.insert(key, val)
+			self.root = tree.get_root()
+			self.maximum = tree.maximum
+			tree.root = None
+			tree.maximum = None
+			return retValue
+		selfHeight = self.root.get_height()
+		treeHeight = tree.root.get_height()
+		treeHasLargerKeys = self.maximum.get_key() < key
+		if(selfHeight == treeHeight):
+			x = AVLNode(None, None)
+			x.realize(key, val)
+			x.set_right(tree.get_root() if treeHasLargerKeys else self.get_root())
+			x.set_left(self.get_root() if treeHasLargerKeys else tree.get_root())
+			self.root = x
+			self.maximum = tree.maximum if treeHasLargerKeys else self.maximum
+			tree.root = None
+			tree.maximum = None
+			x.update_height()
+			x.update_size()
+			return 1
+		t1 = None
+		t2 = None
+		if (selfHeight < treeHeight):
+			t1 = self
+			t2 = tree
+		else:
+			t1 = tree
+			t2 = self
+		goLeft = t1.get_root().get_key() < t2.get_root().get_key()
+		b = t2.get_root()
+		if (goLeft):
+			while (b.get_height() > t1.get_root().get_height()):
+				b = b.get_left()
+		else:
+			while (b.get_height() > t1.get_root().get_height()):
+				b = b.get_right()
+		x = AVLNode(None, None)
+		x.realize(key, val)
+		t1root = t1.get_root()
+		self.root = t2.get_root()
+		if (goLeft):
+			x.set_left(t1root)
+			x.set_right(b)
+			x.set_parent(b.parent)
+			x.parent.set_left(x)
+			b.set_parent(x)
+			t1root.set_parent(x)
+			self.maximum = t2.maximum
+			x.update_height()
+			x.update_size()
+			x = x.get_parent()
+			while (None != x):
+				x.update_height()
+				x.update_size()
+				if (x.get_BF() == 2):
+					self.rotate_right(x)
+				x = x.get_parent()
+		else:
+			x.set_right(t1.get_root())
+			x.set_left(b)
+			x.set_parent(b.parent)
+			x.parent.set_right(x)
+			b.set_parent(x)
+			t1.get_root().set_parent(x)
+			self.maximum = t1.maximum
+			x.update_height()
+			x.update_size()
+			x = x.get_parent()
+			while (None != x):
+				x.update_height()
+				x.update_size()
+				if (x.get_BF() == -2):
+					self.rotate_left(x)
+				x = x.get_parent()
+		return 1 + abs(selfHeight - treeHeight)
 
 	"""compute the rank of node in the self
 
@@ -610,8 +690,6 @@ class AVLTree(object):
 		# cur is node at this point
 		return rank + cur.get_left().get_size()
 
-
-
 	"""finds the i'th smallest item (according to keys) in self	
 	@type i: int
 	@pre: 1 <= i <= self.size()
@@ -632,9 +710,6 @@ class AVLTree(object):
 			else:
 				return select_recursive(node.right, i-r)
 		return select_recursive(self.root, i)
-		
-	
-
 
 	"""returns the root of the tree representing the dictionary
 
@@ -648,4 +723,13 @@ class AVLTree(object):
 def debug(t):
 	print(t.maximum.get_key())
 
-print(ArrayCreator.CreateArray(2, 0))
+tree1 = AVLTree()
+keys = [6, 3, 8, 7]
+for i in keys:
+	tree1.insert(i, i)
+tree2 = AVLTree()
+keys = [20, 15, 30]
+for i in keys:
+	tree2.insert(i, i)
+tree1.join(tree2, 11, 11)
+debug(tree1)
