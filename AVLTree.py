@@ -219,15 +219,15 @@ class AVLTree(object):
 	@returns: node corresponding to key.
 	"""    
 	def search(self, key):
-		def env_search(AVLNode, key):
-			if (AVLNode.is_real_node()):
+		def env_search(node, key):
+			if (not node.is_real_node()):
 				return None
-			if(AVLNode.key)==key:
-				return AVLNode
-			elif (key > AVLNode.key):
-				return AVLTree.env_search(AVLNode.right,key)
+			if (node.key == key):
+				return node
+			elif (key > node.key):
+				return env_search(node.right, key)
 			else:
-				return AVLTree.env_search(AVLNode.left,key)
+				return env_search(node.left, key)
 		return env_search(self.root, key)
 	    
 	def rotate_left(self, node):
