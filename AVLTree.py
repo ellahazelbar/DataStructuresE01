@@ -662,6 +662,8 @@ class AVLTree(object):
 				if (x.get_BF() == -2):
 					self.rotate_left(x)
 				x = x.get_parent()
+		tree.root = None
+		tree.maximum = None
 		return 1 + abs(selfHeight - treeHeight)
 
 	"""compute the rank of node in the self
