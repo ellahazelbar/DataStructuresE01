@@ -189,6 +189,14 @@ class AVLNode(object):
 			return self.get_right().inorder(process_func, index + 1)
 		else:
 			return index - 1
+		
+	def preorder(self, process_func, index):
+		if self.is_real_node():
+			process_func(self, index)
+			index = self.get_left().inorder(process_func, index + 1)
+			return self.get_right().inorder(process_func, index + 1)
+		else:
+			return index - 1
 
 """
 A class implementing an AVL tree.
@@ -563,9 +571,37 @@ class AVLTree(object):
 	dictionary larger than node.key.
 	"""
 	def split(self, node):
-		return None
+		parent = node.get_parent()
+		left = AVLTree()
+		left.root = node.get_left()
+		left.root.set_parent(None)
+		right = AVLTree()
+		right.root = node.get_right()
+		right.root.set_parent(None)
+		if (None == parent):
+			self.root = None
+			self.maximum = None
+			return [left, right]
+		while (None != parent):
+			if (parent.get_right().get_key() == node.get_key()):
+				temp = AVLTree()
+				temp.root = parent.get_left()
+				temp.root.set_parent(None)
+				left.join(temp, parent.get_key(), parent.get_value(), False)
+			else:
+				temp = AVLTree()
+				temp.root = parent.get_right()
+				temp.root.set_parent(None)
+				right.join(temp, parent.get_key(), parent.get_value(), False)
+			node = parent
+			parent = parent.get_parent()
+		right.maximum = self.maximum
+		temp = left.root
+		while (temp.get_right().is_real_node()):
+			temp = temp.get_right()
+		left.maximum = temp
+		return [left, right]
 
-	
 	"""joins self with key and another AVLTree
 
 	@type tree: AVLTree 
@@ -580,14 +616,16 @@ class AVLTree(object):
 	@rtype: int
 	@returns: the absolute value of the difference between the height of the AVL trees joined
 	"""
-	def join(self, tree, key, val):
+	def join(self, tree, key, val, update_maximum = True):
+		if (self.root.key == 672):
+			"breakpoint"
 		if (not tree.get_root().is_real_node()):
 			retValue = self.get_root().get_height() + 2
-			self.insert(key, val)
+			self.insert(key, val, False)
 			return retValue
 		if (not self.get_root().is_real_node()):
 			retValue = tree.get_root().get_height() + 2
-			tree.insert(key, val)
+			tree.insert(key, val, False)
 			self.root = tree.get_root()
 			self.maximum = tree.maximum
 			tree.root = None
@@ -595,14 +633,15 @@ class AVLTree(object):
 			return retValue
 		selfHeight = self.root.get_height()
 		treeHeight = tree.root.get_height()
-		treeHasLargerKeys = self.maximum.get_key() < key
+		treeHasLargerKeys = self.get_root().get_key() < key
 		if(selfHeight == treeHeight):
 			x = AVLNode(None, None)
 			x.realize(key, val)
 			x.set_right(tree.get_root() if treeHasLargerKeys else self.get_root())
 			x.set_left(self.get_root() if treeHasLargerKeys else tree.get_root())
 			self.root = x
-			self.maximum = tree.maximum if treeHasLargerKeys else self.maximum
+			if (update_maximum):
+				self.maximum = tree.maximum if treeHasLargerKeys else self.maximum
 			tree.root = None
 			tree.maximum = None
 			x.update_height()
@@ -646,13 +685,14 @@ class AVLTree(object):
 					self.rotate_right(x)
 				x = x.get_parent()
 		else:
-			x.set_right(t1.get_root())
+			x.set_right(t1root)
 			x.set_left(b)
 			x.set_parent(b.parent)
 			x.parent.set_right(x)
 			b.set_parent(x)
-			t1.get_root().set_parent(x)
-			self.maximum = t1.maximum
+			t1root.set_parent(x)
+			if (update_maximum):
+				self.maximum = t1.maximum
 			x.update_height()
 			x.update_size()
 			x = x.get_parent()
@@ -723,15 +763,18 @@ class AVLTree(object):
 	
 
 def debug(t):
-	print(t.maximum.get_key())
+	ino = [None for i in range(t.size())]
+	def inprocess(node, index):
+		ino[index] = node.get_key()
+	t.root.inorder(inprocess, 0)
+	print(ino)
 
-tree1 = AVLTree()
-keys = [6, 3, 8, 7]
+tree = AVLTree()
+keys = [490, 156, 765, 122, 383, 626, 784, 57, 137, 312, 416, 601, 672, 776, 898, 35, 62, 268, 367, 391, 428, 595, 617, 669, 700, 964, 253, 653, 682, 760]
 for i in keys:
-	tree1.insert(i, i)
-tree2 = AVLTree()
-keys = [20, 15, 30]
-for i in keys:
-	tree2.insert(i, i)
-tree1.join(tree2, 11, 11)
-debug(tree1)
+	tree.insert(i, i)
+node = tree.get_root().get_left().get_right()
+print(node.get_key())
+lst = tree.split(node)
+debug(lst[0])
+debug(lst[1])
