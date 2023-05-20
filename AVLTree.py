@@ -144,8 +144,6 @@ class AVLNode(object):
 	def set_height(self, h):
 		self.height = h
 
-
-
 	def update_size(self):
 		if self.is_real_node():
 			self.size = self.get_right().get_size() + self.get_left().get_size() + 1
@@ -163,7 +161,8 @@ class AVLNode(object):
 			return self.get_left().get_height() - self.get_right().get_height()
 		return 0
 
-	def realize(self, key, value):
+	#turns the node from virtual to real
+	def realize(self, key, value): 
 		self.set_key(key)
 		self.set_value(value)
 		self.set_height(0)
@@ -182,6 +181,7 @@ class AVLNode(object):
 	def is_real_node(self):
 		return self.get_key() != None
 
+	#performs a recursive in-order tour of the subtree
 	def inorder(self, process_func, index):
 		if self.is_real_node():
 			index = self.get_left().inorder(process_func, index) + 1
@@ -190,12 +190,6 @@ class AVLNode(object):
 		else:
 			return index - 1
 		
-	def preorder(self, process_func, index):
-		if self.is_real_node():
-			process_func(self, index)
-			index = self.get_left().inorder(process_func, index + 1)
-			return self.get_right().inorder(process_func, index + 1)
-		else:
 			return index - 1
 
 """
@@ -322,6 +316,53 @@ class AVLTree(object):
 		g.update_height()
 		g.update_size()
 
+	#performs the matching rotation to a node cur, if one is needed
+	#uses the conditions laid out in the insert algorithm
+	def perform_rotation(self, cur):
+		balance_factor = cur.get_BF()
+		if (balance_factor < -1):
+			bf_right = cur.get_right().get_BF()
+			if (-1 == bf_right):
+				self.rotate_left(cur)
+				return 1
+			else:
+				self.rotate_rightleft(cur)
+				return 2
+		elif (1 < balance_factor):
+			bf_left = cur.get_left().get_BF()
+			if (-1 == bf_left):
+				self.rotate_leftright(cur)
+				return 2 
+			else:
+				self.rotate_right(cur)
+				return 1
+		return 0
+
+	#performs the matching rotation to a node cur, if one is needed
+	#uses the conditions laid out in the delete algorithm
+	#is also used in join, and thus in split too
+	def perform_rotation_delete(self, cur):
+		balance_factor = cur.get_BF()
+		if (balance_factor < -1):
+			bf_right = cur.get_right().get_BF()
+			if (1 == bf_right):
+				self.rotate_rightleft(cur)
+				return 2
+			else:
+				self.rotate_left(cur)
+				return 1
+		elif (1 < balance_factor):
+			bf_left = cur.get_left().get_BF()
+			if (-1 == bf_left):
+				self.rotate_leftright(cur)
+				return 2 
+			else:
+				self.rotate_right(cur)
+				return 1
+			
+		return 0
+
+	#starts from node Cur and creates a new child
 	def create_node_bst(self, key, val, cur):
 		while True:
 			if (not cur.is_real_node()):
@@ -366,27 +407,9 @@ class AVLTree(object):
 
 		fixes = 0
 		while (None != cur):
-			balance_factor = cur.get_BF()
-			if (balance_factor < -2 or 2 < balance_factor):
-				"breakpoint"
-			if (balance_factor < -1):
-				bf_right = cur.get_right().get_BF()
-				if (-1 == bf_right):
-					fixes += 1
-					self.rotate_left(cur)
-				else:
-					fixes += 2
-					self.rotate_rightleft(cur)
-			elif (1 < balance_factor):
-				bf_left = cur.get_left().get_BF()
-				if (-1 == bf_left):
-					fixes += 2 
-					self.rotate_leftright(cur)
-				else:
-					fixes += 1
-					self.rotate_right(cur)
 			cur.update_size()
 			cur.update_height()
+			fixes += self.perform_rotation(cur)
 			cur = cur.get_parent()
 		return fixes
 
@@ -398,8 +421,9 @@ class AVLTree(object):
 	@returns: the number of rebalancing operation due to AVL rebalancing
 	"""
 	def delete(self, node, balance = True):
-		if (node.get_key() == self.maximum.get_key()):
-			self.maximum = self.predecessor(node)
+		if (balance):
+			if (node.get_key() == self.maximum.get_key()):
+				self.maximum = self.predecessor(node)
 		fixPoint = None
 		count = 0
 		if (not node.is_real_node()):
@@ -457,6 +481,8 @@ class AVLTree(object):
 			parent = node.get_parent()
 			suc = self.successor(node)
 			fixPoint = suc.get_parent()
+			if (node == fixPoint): #successor is node's direct child 
+				fixPoint = suc	   #so suc is the parent of the node actually removed
 			self.delete(suc, False)
 			if (None == parent):
 				self.root = suc
@@ -476,28 +502,11 @@ class AVLTree(object):
 			suc.update_size()
 			node.set_left(None)
 			node.set_parent(None)
-		
 		if (not balance):
 			return 0
 		cur = fixPoint
 		while (None != cur):
-			balance_factor = cur.get_BF()
-			if (balance_factor < -1):
-				bf_right = cur.get_right().get_BF()
-				if (1 == bf_right):
-					count += 2
-					self.rotate_rightleft(cur)
-				else:
-					count += 1
-					self.rotate_left(cur)
-			elif (1 < balance_factor):
-				bf_left = cur.get_left().get_BF()
-				if (-1 == bf_left):
-					count += 2 
-					self.rotate_leftright(cur)
-				else:
-					count += 1
-					self.rotate_right(cur)
+			count += self.perform_rotation_delete(cur)
 			cur.update_height()
 			cur.update_size()
 			cur = cur.get_parent()
@@ -537,7 +546,6 @@ class AVLTree(object):
 					node = cur
 					cur = node.get_parent()
 
-		
 	"""returns an array representing dictionary 
 
 	@rtype: list
@@ -550,7 +558,6 @@ class AVLTree(object):
 		self.root.inorder(process, 0)
 		return res
 
-
 	"""returns the number of items in dictionary 
 
 	@rtype: int
@@ -559,7 +566,6 @@ class AVLTree(object):
 	def size(self):
 		return self.get_root().get_size()	
 
-	
 	"""splits the dictionary at a given node
 
 	@type node: AVLNode
@@ -571,6 +577,21 @@ class AVLTree(object):
 	dictionary larger than node.key.
 	"""
 	def split(self, node):
+		def FindMaxima(left, right):
+			if (right.root.is_real_node()):
+				temp = right.root
+				while (temp.get_right().is_real_node()):
+					temp = temp.get_right()
+				right.maximum = temp
+			else:
+				right.maximum = right.root
+			if (left.root.is_real_node()):
+				temp = left.root
+				while (temp.get_right().is_real_node()):
+					temp = temp.get_right()
+				left.maximum = temp
+			else:
+				left.maximum = left.root
 		parent = node.get_parent()
 		left = AVLTree()
 		left.root = node.get_left()
@@ -580,6 +601,7 @@ class AVLTree(object):
 		right.root.set_parent(None)
 		if (None == parent):
 			self.root = None
+			FindMaxima(left, right)
 			self.maximum = None
 			return [left, right]
 		while (None != parent):
@@ -595,11 +617,8 @@ class AVLTree(object):
 				right.join(temp, parent.get_key(), parent.get_value(), False)
 			node = parent
 			parent = parent.get_parent()
-		right.maximum = self.maximum
-		temp = left.root
-		while (temp.get_right().is_real_node()):
-			temp = temp.get_right()
-		left.maximum = temp
+		FindMaxima(left, right)
+		self.root = self.maximum = None
 		return [left, right]
 
 	"""joins self with key and another AVLTree
@@ -617,8 +636,6 @@ class AVLTree(object):
 	@returns: the absolute value of the difference between the height of the AVL trees joined
 	"""
 	def join(self, tree, key, val, update_maximum = True):
-		if (self.root.key == 672):
-			"breakpoint"
 		if (not tree.get_root().is_real_node()):
 			retValue = self.get_root().get_height() + 2
 			self.insert(key, val, False)
@@ -627,7 +644,8 @@ class AVLTree(object):
 			retValue = tree.get_root().get_height() + 2
 			tree.insert(key, val, False)
 			self.root = tree.get_root()
-			self.maximum = tree.maximum
+			if (update_maximum):
+				self.maximum = tree.maximum
 			tree.root = None
 			tree.maximum = None
 			return retValue
@@ -635,10 +653,11 @@ class AVLTree(object):
 		treeHeight = tree.root.get_height()
 		treeHasLargerKeys = self.get_root().get_key() < key
 		if(selfHeight == treeHeight):
-			x = AVLNode(None, None)
-			x.realize(key, val)
+			x = AVLNode(key, val)
 			x.set_right(tree.get_root() if treeHasLargerKeys else self.get_root())
 			x.set_left(self.get_root() if treeHasLargerKeys else tree.get_root())
+			x.get_right().set_parent(x)
+			x.get_left().set_parent(x)
 			self.root = x
 			if (update_maximum):
 				self.maximum = tree.maximum if treeHasLargerKeys else self.maximum
@@ -674,15 +693,15 @@ class AVLTree(object):
 			x.parent.set_left(x)
 			b.set_parent(x)
 			t1root.set_parent(x)
-			self.maximum = t2.maximum
+			if (update_maximum):
+				self.maximum = t2.maximum
 			x.update_height()
 			x.update_size()
 			x = x.get_parent()
 			while (None != x):
 				x.update_height()
 				x.update_size()
-				if (x.get_BF() == 2):
-					self.rotate_right(x)
+				self.perform_rotation_delete(x)
 				x = x.get_parent()
 		else:
 			x.set_right(t1root)
@@ -699,8 +718,7 @@ class AVLTree(object):
 			while (None != x):
 				x.update_height()
 				x.update_size()
-				if (x.get_BF() == -2):
-					self.rotate_left(x)
+				self.perform_rotation_delete(x)
 				x = x.get_parent()
 		tree.root = None
 		tree.maximum = None
@@ -760,21 +778,3 @@ class AVLTree(object):
 	"""
 	def get_root(self):
 		return self.root
-	
-
-def debug(t):
-	ino = [None for i in range(t.size())]
-	def inprocess(node, index):
-		ino[index] = node.get_key()
-	t.root.inorder(inprocess, 0)
-	print(ino)
-
-tree = AVLTree()
-keys = [490, 156, 765, 122, 383, 626, 784, 57, 137, 312, 416, 601, 672, 776, 898, 35, 62, 268, 367, 391, 428, 595, 617, 669, 700, 964, 253, 653, 682, 760]
-for i in keys:
-	tree.insert(i, i)
-node = tree.get_root().get_left().get_right()
-print(node.get_key())
-lst = tree.split(node)
-debug(lst[0])
-debug(lst[1])
