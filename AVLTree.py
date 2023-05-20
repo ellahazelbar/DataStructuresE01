@@ -378,6 +378,8 @@ class AVLTree(object):
 			else:
 				cur = cur.get_right()
 	
+	#finds the start point of a binary search using fingertree method
+	#used to insert a node 
 	def find_start_fingertree(self, key):
 		cur = self.maximum
 		if (not cur.is_real_node()):
@@ -431,8 +433,10 @@ class AVLTree(object):
 		realLeft = node.get_left().is_real_node()
 		realRight = node.get_right().is_real_node()
 		if (not realLeft and not realRight):
+			#node is a leaf, just remove it
 			fixPoint = node.get_parent()
 			if (fixPoint == None):
+				#leaf was root, tree is now empty
 				self.root = AVLNode(None, None)
 				self.maximum = self.root
 				return 0
@@ -446,6 +450,7 @@ class AVLTree(object):
 			node.set_left(None)
 			node.set_parent(None)
 		elif (realLeft and not realRight):
+			#node had left child but no right child, bypass and balance
 			fixPoint = node.get_parent()
 			if (fixPoint == None):
 				self.root = node.get_left()
@@ -462,6 +467,7 @@ class AVLTree(object):
 			node.set_left(None)
 			node.set_parent(None)
 		elif (realRight and not realLeft):
+			#node had right child but no left child, bypass and balance
 			fixPoint = node.get_parent()
 			if (fixPoint == None):
 				self.root = node.get_right()
@@ -478,6 +484,7 @@ class AVLTree(object):
 			node.set_left(None)
 			node.set_parent(None)
 		else:
+			#node had two children, replace with successor
 			parent = node.get_parent()
 			suc = self.successor(node)
 			fixPoint = suc.get_parent()
@@ -485,6 +492,7 @@ class AVLTree(object):
 				fixPoint = suc	   #so suc is the parent of the node actually removed
 			self.delete(suc, False)
 			if (None == parent):
+				#deleted node was root
 				self.root = suc
 				suc.set_parent(None)
 			else:
@@ -503,6 +511,7 @@ class AVLTree(object):
 			node.set_left(None)
 			node.set_parent(None)
 		if (not balance):
+			#occurs only when delete is called from inside itself
 			return 0
 		cur = fixPoint
 		while (None != cur):
@@ -512,6 +521,7 @@ class AVLTree(object):
 			cur = cur.get_parent()
 		return count
 	
+	#finds the next node, None if node is maximal
 	def successor(self, node):
 		if (node.get_right().is_real_node()):
 			cur = node.get_right()
@@ -529,6 +539,7 @@ class AVLTree(object):
 					node = cur
 					cur = node.get_parent()
 
+	#finds the previous node, None if node is minimal
 	def predecessor(self, node):
 		if (node.get_left().is_real_node()):
 			cur = node.get_left()
@@ -578,6 +589,7 @@ class AVLTree(object):
 	"""
 	def split(self, node):
 		def FindMaxima(left, right):
+			#updated the maxima of the resulting trees so they are valid when returned
 			if (right.root.is_real_node()):
 				temp = right.root
 				while (temp.get_right().is_real_node()):
@@ -600,17 +612,20 @@ class AVLTree(object):
 		right.root = node.get_right()
 		right.root.set_parent(None)
 		if (None == parent):
+			#split called on root, thus left, right subtrees are ready to be returned
 			self.root = None
 			FindMaxima(left, right)
 			self.maximum = None
 			return [left, right]
 		while (None != parent):
 			if (parent.get_right().get_key() == node.get_key()):
+				#join left
 				temp = AVLTree()
 				temp.root = parent.get_left()
 				temp.root.set_parent(None)
 				left.join(temp, parent.get_key(), parent.get_value(), False)
 			else:
+				#join right
 				temp = AVLTree()
 				temp.root = parent.get_right()
 				temp.root.set_parent(None)
@@ -637,10 +652,12 @@ class AVLTree(object):
 	"""
 	def join(self, tree, key, val, update_maximum = True):
 		if (not tree.get_root().is_real_node()):
+			#tree is empty, insert x into self
 			retValue = self.get_root().get_height() + 2
 			self.insert(key, val, False)
 			return retValue
 		if (not self.get_root().is_real_node()):
+			#self is empty, insert x into tree and steal it
 			retValue = tree.get_root().get_height() + 2
 			tree.insert(key, val, False)
 			self.root = tree.get_root()
@@ -653,6 +670,7 @@ class AVLTree(object):
 		treeHeight = tree.root.get_height()
 		treeHasLargerKeys = self.get_root().get_key() < key
 		if(selfHeight == treeHeight):
+			#trees are already of equal sizes; use x as new root
 			x = AVLNode(key, val)
 			x.set_right(tree.get_root() if treeHasLargerKeys else self.get_root())
 			x.set_left(self.get_root() if treeHasLargerKeys else tree.get_root())
@@ -675,6 +693,7 @@ class AVLTree(object):
 			t1 = tree
 			t2 = self
 		goLeft = t1.get_root().get_key() < t2.get_root().get_key()
+		#find merge point
 		b = t2.get_root()
 		if (goLeft):
 			while (b.get_height() > t1.get_root().get_height()):
@@ -745,8 +764,6 @@ class AVLTree(object):
 				rank += cur.get_left().get_size() + 1
 				cur = cur.get_right()
 				curKey = cur.get_key()
-			if (None == curKey): #cur is virtual - for internal testing
-				return -1
 		# cur is node at this point
 		return rank + cur.get_left().get_size()
 
