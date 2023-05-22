@@ -189,8 +189,6 @@ class AVLNode(object):
 			return self.get_right().inorder(process_func, index + 1)
 		else:
 			return index - 1
-		
-			return index - 1
 
 """
 A class implementing an AVL tree.
@@ -614,8 +612,8 @@ class AVLTree(object):
 		if (None == parent):
 			#split called on root, thus left, right subtrees are ready to be returned
 			self.root = None
-			FindMaxima(left, right)
 			self.maximum = None
+			FindMaxima(left, right)
 			return [left, right]
 		while (None != parent):
 			if (parent.get_right().get_key() == node.get_key()):
