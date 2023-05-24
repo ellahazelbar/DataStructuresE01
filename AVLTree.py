@@ -134,7 +134,9 @@ class AVLNode(object):
 
 	def update_height(self):
 		if self.is_real_node():
+			prev = self.get_height()
 			self.height = max(self.get_right().get_height(), self.get_left().get_height()) + 1
+			return self.height - prev
 
 	"""sets the height of the node
 
@@ -222,6 +224,7 @@ class AVLTree(object):
 				return env_search(node.left, key)
 		return env_search(self.root, key)
 	    
+	#performs a left rotation centered on the given node
 	def rotate_left(self, node):
 		child = node.get_right()
 		if (None != node.get_parent()):
@@ -241,6 +244,7 @@ class AVLTree(object):
 		child.update_height()
 		child.update_size()
 	
+	#performs a right rotation centered on the given node B
 	def rotate_right(self, B):
 		A=B.left
 		B.left = A.right
@@ -260,6 +264,7 @@ class AVLTree(object):
 		A.update_size()
 		A.update_height()
 	
+	#performs a left-right rotation centered on the given node and its left child
 	def rotate_leftright(self, node):
 		child = node.get_left()
 		grand = child.get_right()
@@ -287,6 +292,7 @@ class AVLTree(object):
 		grand.update_height()
 		grand.update_size()
 
+	#performs a right-left rotation centered on the given node n and its right child
 	def rotate_rightleft(self,n):
 		c=n.right
 		g=c.left
@@ -318,7 +324,7 @@ class AVLTree(object):
 	#uses the conditions laid out in the insert algorithm
 	def perform_rotation(self, cur):
 		balance_factor = cur.get_BF()
-		if (balance_factor < -1):
+		if (balance_factor < -1): #bf == -2
 			bf_right = cur.get_right().get_BF()
 			if (-1 == bf_right):
 				self.rotate_left(cur)
@@ -326,7 +332,7 @@ class AVLTree(object):
 			else:
 				self.rotate_rightleft(cur)
 				return 2
-		elif (1 < balance_factor):
+		elif (1 < balance_factor): #bf == 2
 			bf_left = cur.get_left().get_BF()
 			if (-1 == bf_left):
 				self.rotate_leftright(cur)
@@ -360,7 +366,7 @@ class AVLTree(object):
 			
 		return 0
 
-	#starts from node Cur and creates a new child
+	#starts from node Cur and creates a new leaf using the BST insertion algorithm
 	def create_node_bst(self, key, val, cur):
 		while True:
 			if (not cur.is_real_node()):
@@ -377,7 +383,7 @@ class AVLTree(object):
 				cur = cur.get_right()
 	
 	#finds the start point of a binary search using fingertree method
-	#used to insert a node 
+	#used to insert a node which is passed along to create_node_bst
 	def find_start_fingertree(self, key):
 		cur = self.maximum
 		if (not cur.is_real_node()):
@@ -386,7 +392,7 @@ class AVLTree(object):
 			if (cur.get_key() < key):
 				return cur.get_right()
 			cur = cur.get_parent()
-		return self.root;
+		return self.root
 		
 	"""inserts val at position i in the dictionary	
 		@type key: int
@@ -405,11 +411,23 @@ class AVLTree(object):
 		else:
 			cur = self.create_node_bst(key, val, self.root)
 
+		cur = cur.get_parent()
 		fixes = 0
+		checkRotation = True
 		while (None != cur):
 			cur.update_size()
-			cur.update_height()
-			fixes += self.perform_rotation(cur)
+			deltaHeight = cur.update_height()
+			bf = cur.get_BF()
+			if (checkRotation and abs(bf) < 2 and deltaHeight == 0):
+				checkRotation = False #balancing is done; update size and height in parents and return
+			if (checkRotation):
+				balanceCost = self.perform_rotation(cur)
+				if (0 == balanceCost):
+					if (0 != deltaHeight):
+						balanceCost = 1
+				else:
+					cur = cur.get_parent()
+				fixes += balanceCost
 			cur = cur.get_parent()
 		return fixes
 
@@ -504,18 +522,26 @@ class AVLTree(object):
 			node.set_right(None)
 			suc.set_left(node.get_left())
 			suc.get_left().set_parent(suc)
-			suc.update_height()
-			suc.update_size()
 			node.set_left(None)
 			node.set_parent(None)
 		if (not balance):
 			#occurs only when delete is called from inside itself
 			return 0
 		cur = fixPoint
+		checkRotation = True 
 		while (None != cur):
-			count += self.perform_rotation_delete(cur)
-			cur.update_height()
 			cur.update_size()
+			deltaHeight = cur.update_height()
+			if (checkRotation and cur != fixPoint and abs(cur.get_BF()) < 2 and deltaHeight == 0):
+				checkRotation = False
+			if checkRotation:
+				balanceCost = self.perform_rotation_delete(cur)
+				if (0 == balanceCost):
+					if (0 != deltaHeight):
+						balanceCost = 1
+				else:
+					cur = cur.get_parent()
+				count += balanceCost
 			cur = cur.get_parent()
 		return count
 	
@@ -682,8 +708,8 @@ class AVLTree(object):
 			x.update_height()
 			x.update_size()
 			return 1
-		t1 = None
-		t2 = None
+		#t2 will be the taller tree; t1 will be the shorter tree
+		t1 = None; t2 = None
 		if (selfHeight < treeHeight):
 			t1 = self
 			t2 = tree
@@ -777,7 +803,7 @@ class AVLTree(object):
 			if (not node.is_real_node()):
 				return None
 			left_subtree_rank = node.left.size if node.left is not None else 0
-			r= 1 + left_subtree_rank
+			r = 1 + left_subtree_rank
 			if i == r:
 				return node
 			elif i < r:
